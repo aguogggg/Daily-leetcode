@@ -56,3 +56,47 @@ public:
 #### 复杂度分析
  - 时间复杂度$O(n^2)$: 其中 n 表示二维棋盘边的长度。需要检测棋盘中的每个位置，一共需要检测 $n^2$ 个位置。
  - 空间复杂度$O(n^2)$: 递归 $n^2$ 次。
+
+### 2023.9.14
+#### 1222. 可以攻击国王的皇后
+#### 思路
+从国王出发的八个方向上找最近的皇后，用两个vector来表示8个方向上寻找位置的变化。
+在每个方向上深度优先搜索。
+#### 可用上的条件
+8x8的棋盘,定义边界范围
+搜索方向：同列col、同行row、斜方向上 row-col row+col
+```
+class Solution {
+public:
+    //定义搜索方向
+    vector<int> direction1{0,0,1,-1,1,-1,-1,1};
+    vector<int> direction2{1,-1,0,0,1,-1,1,-1};
+    vector<vector<int>> queensAttacktheKing(vector<vector<int>>& queens, vector<int>& king) {
+        //确定皇后的位置
+        vector<vector<bool>> chess(8,vector<bool>(8,false));
+        vector<vector<int>> ans;
+        for(const auto& q:queens){
+            chess[q[0]][q[1]]=true;
+        }
+        for(int i=0;i<8;++i){
+            //每次都从国王的位置出发
+            dfs(chess,ans,king[0],king[1],direction1[i],direction2[i]);
+        }
+        return ans;
+    }
+    //递归
+    void dfs(vector<vector<bool>>& chess,vector<vector<int>>& ans, int i,int j,int x,int y){
+        if(i<0||i>=8||j<0||j>=8){
+            return;
+        }
+        if(chess[i][j]==true){
+            ans.push_back(vector<int>{i,j});
+            return;
+        }
+        dfs(chess,ans,i+x,j+y,x,y);
+    }
+};
+```
+#### 复杂度分析
+ - 时间复杂度$O(n+C)$: 其中 n 表示皇后的个数，需要遍历每个皇后的位置，C表示每个方向上搜索的次数，C最大为8。
+ - 空间复杂度$O(1)$: 常数大小的棋盘。
