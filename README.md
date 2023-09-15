@@ -5,8 +5,10 @@
 #### 题目 2596. 检查骑士巡视方案
 #### 思路
 >在大小为 n * n 的棋盘上，骑士往八个方向移动，先设置标志位 flag = flase 
-利用移动过程中记录的步数 count 和骑士到达位置上的数字 grid[ i ][ j ] 比较,相等则继续移动、比较，找到下一个正确移动位置
-直到移动到最后的位置，即步数 count 和棋盘的格数相等: count==n*n-1，同时设置标志位 flag 为 true。
+
+>利用移动过程中记录的步数 count 和骑士到达位置上的数字 grid[ i ][ j ] 比较,相等则继续移动、比较，找到下一个正确移动位置
+
+>直到移动到最后的位置，即步数 count 和棋盘的格数相等: count==n*n-1，同时设置标志位 flag 为 true。
 #### 代码
 ```
 class Solution {
@@ -60,10 +62,11 @@ public:
 ### 2023.9.14
 #### 1222. 可以攻击国王的皇后
 #### 思路
-从国王出发的八个方向上找最近的皇后，用两个vector来表示8个方向上寻找位置的变化。
-在每个方向上深度优先搜索。
+>从国王出发的八个方向上找最近的皇后，用两个vector来表示8个方向上寻找位置的变化。
+
+>在每个方向上深度优先搜索。
 #### 可用上的条件
-8x8的棋盘,定义边界范围
+>8x8的棋盘,定义边界范围
 搜索方向：同列col、同行row、斜方向上 row-col row+col
 ```
 class Solution {
@@ -100,3 +103,34 @@ public:
 #### 复杂度分析
  - 时间复杂度$O(n+C)$: 其中 n 表示皇后的个数，需要遍历每个皇后的位置，C表示每个方向上搜索的次数，C最大为8。
  - 空间复杂度$O(1)$: 常数大小的棋盘。
+
+
+### 2023.9.15
+   每日打卡，( •̀ ω •́ )y
+### 思路
+>遍历 operations 的同时修改勇者的宝石
+
+>遍历勇者宝石数量 gem 找到最大值和最小值，返回差。
+```
+class Solution {
+public:
+    int giveGem(vector<int>& gem, vector<vector<int>>& operations) {
+        for(const auto& operation:operations){
+            int i=operation[0];
+            int number=gem[i]/2;
+            gem[operation[1]]+=number;
+            gem[i]-=number;
+        }
+        int m=gem.size();
+        int mingem=gem[0],maxgem=0;
+        for(int i=0;i<m;++i){
+                mingem=mingem>gem[i]?gem[i]:mingem;
+                maxgem=gem[i]>maxgem?gem[i]:maxgem;
+        }
+        return maxgem-mingem;
+    }
+};
+```
+#### 复杂度分析
+ - 时间复杂度$O(m+n)$: m 和 n 分别表示 gem 和 operations 的大小，都需要遍历一次。
+  - 空间复杂度$O(1)$: 常数空间。
