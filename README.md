@@ -441,3 +441,59 @@ public:
                 q.push_back(y);
     }
 ```
+
+### 2023.9.22
+------------------------------
+> Problem: [2591. 将钱分给最多的儿童](https://leetcode.cn/problems/distribute-money-to-maximum-children/description/)
+
+  [TOC]
+  
+  # 思路
+  > 题目保证每个儿童至少分得1美元，且不能恰好分得4美元，求分得8美元的最大儿童数，也就是说，每个儿童分得的美元没有上限。
+  
+  # 解题方法
+  > 这里用到贪心，先假设每个儿童都分得8美元，那么需要children*8的needmoney美元数
+- 如果needmoney小于money，带了太多美元，那就挑选一个满意的儿童，都给这个儿童，这样就只有一个儿童不满足8美元的条件，返回children-1
+- 如果needmoney等于money，所有儿童平等分得8美元，返回children
+- 如果needmoney大于money，美元没带够，有些儿童少分点，而每个儿童必须分得至少1美元，在这之前是假设每个儿童分得了8美元，如果钱不够，那么最后一个儿童少分点，这个少分点的范围是7美元，情况如下
+1. 但如果恰好少带了4美元，那么最后一个儿童就分得4美元，不满足条件，所以必须有另一个儿童来分担。这种特殊情况就返回children-2
+2. 每个儿童的变动范围是7美元，还是利用贪心，使没带够的美元尽可能分担到更少的儿童上，所以没带够的美元小于等于7美元（不等于4美元特殊情况），就让一个儿童少分点，没带够的美元大于7美元但是小于等于14美元，就让两个儿童少分点，可以看出是没带够的美元是7的几倍再加上余数。会不会出现一个儿童少分了7美元（分得1美元），另一个儿童少分了4美元（分得4美元）的情况呢，有可能，但是可以让分得4美元的儿童再少分点，那么分得1美元的儿童多分点，这样就满足条件了
+
+  
+  # 复杂度
+  - 时间复杂度: 
+  > $O(1)$
+  
+  - 空间复杂度: 
+  > $O(1)$
+  
+
+
+  # Code
+  ```C++ []
+  
+  class Solution {
+public:
+    int distMoney(int money, int children) {
+        int needmoney=children*8-money;
+        if(needmoney==0){
+            return children;
+        }else if(needmoney>0){
+            //钱不够  4  
+            if(needmoney==4){
+                return children-2;
+            }
+            int num=(needmoney-1)/7+1;
+            if(num>children){
+                return -1;
+            }else{
+                return children-num;
+            }
+        }else{
+            //needmoney<0 钱溢出
+            return children-1;
+        }
+    }
+};
+  ```
+  
