@@ -496,4 +496,154 @@ public:
     }
 };
   ```
+
+### 2023.9.23
+------------------------------
+  > Problem: [1993. 树上的操作](https://leetcode.cn/problems/operations-on-tree/description/)
+
+  [TOC]
+  
+  # 思路
+  > 题目提供从子节点找到父节点的数组，根据更新要求，找祖先节点，则需要复制提供的数组，找子孙节点，为了更快找到子孙节点，则需要额外一个数组来根据父节点找子孙节点，再准备一个二维数组来记录节点是否上锁以及上锁用户id。
+  
+  # 解题方法
+  > 上锁
+- 无锁为-1，用户id为-1
+- 有锁为1，用户id为id
+- 复杂度为1
+>解锁
+- 用户id为锁上记录的id，改锁为-1，id为-1，返回true
+- 用户id不匹配，返回false
+- 复杂度为1
+>更新
+1. 先判断指定节点是否上锁
+2. 无锁则判断祖先节点是否无锁，有锁返回false
+3. 祖先无锁再判断子孙是否有锁，有锁则解锁，记录标志位flag，遍历完所有子孙节点
+4. 根据标志位flag，判断是否给指定节点上锁，返回flag
+5. 如果步骤1指定节点已上锁，直接返回false
+ 
+  
+  # 复杂度
+  - 时间复杂度: 
+  > $O(n)$
+  
+  - 空间复杂度: 
+  > $O(n)$
+  
+
+
+  # Code
+  ```C++ []
+  
+  class LockingTree {
+    //索引为子节点，值为父节点
+    vector<int> parentCopy;
+    //其实只需要一个用户id来看是否上锁，这里没有写这种情况
+    //如果id为-1，表示没上锁，否则上锁，可以省点空间。
+    //是否上锁 -1无锁 1上锁   用户id
+    vector<vector<int>> isLock; 
+    //索引为父节点，值为子节点
+    vector<vector<int>> son;
+    int m_n;
+public:
+    LockingTree(vector<int>& parent) {
+        m_n=parent.size();
+        //可由子节点找到父节点
+        parentCopy=parent;
+        isLock=vector<vector<int>>(m_n,vector<int>(2,-1));
+        son=vector<vector<int>>(m_n);
+        //由父节点找到子节点
+        for (int i = 1; i < m_n; ++i) {
+            son[parentCopy[i]].push_back(i);
+        }
+    }
+    
+    bool lock(int num, int user) {
+        //边界
+        if(num<0||num>=m_n){
+            return false;
+        }
+        //是否上锁
+        if(isLock[num][0]==-1){
+            //上锁
+            isLock[num][0]=1;
+            //记录用户
+            isLock[num][1]=user;
+            return true;
+        }
+        return false;
+    }
+    
+    bool unlock(int num, int user) {
+        if(num<0||num>=m_n){
+            return false;
+        }
+        //是否有用户记录
+        if(isLock[num][1]==user){
+            isLock[num][0]=-1;
+            isLock[num][1]=-1;
+            return true;
+        }
+        return false;
+    }
+    
+    bool upgrade(int num, int user) {
+        if(num<0||num>=m_n){
+            return false;
+        }
+        //看指定节点有无锁
+        if(isLock[num][0]==-1){
+            //无锁
+            int i=num;
+            //判断祖先节点
+            while(i){
+                if(isLock[parentCopy[i]][0]!=-1){
+                    return false;
+                }
+                //回到父节点
+                i=parentCopy[i];
+            }
+            //再判断子孙节点是否包含至少一个锁
+            //使用队列，类似于层序遍历
+            queue<int> s;
+            //标志位来记录至少有一个锁
+            bool flag=false;
+            for (auto j : son[num]) {
+                s.push(j);
+            }
+            while(!s.empty()){
+                int sonnum=s.size();
+                while(sonnum--){
+                    int n=s.front();
+                    s.pop();
+                    //有锁
+                    if(isLock[n][0]!=-1){
+                        flag=true;
+                        isLock[n][0]=-1;
+                        isLock[n][1]=-1;
+                    }
+                    for (auto j : son[n]) {
+                        s.push(j);
+                    }
+                }
+            }
+            if(flag){
+                //注意指定节点上锁顺序，必须判断能更新才上锁
+                lock(num,user);
+            }
+            return flag;
+        }else{
+            return false;
+        }
+    }
+};
+
+/**
+ * Your LockingTree object will be instantiated and called as such:
+ * LockingTree* obj = new LockingTree(parent);
+ * bool param_1 = obj->lock(num,user);
+ * bool param_2 = obj->unlock(num,user);
+ * bool param_3 = obj->upgrade(num,user);
+ */
+  ```
   
