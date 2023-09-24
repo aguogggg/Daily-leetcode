@@ -646,4 +646,132 @@ public:
  * bool param_3 = obj->upgrade(num,user);
  */
   ```
+
+
+
+### 2023.9.24
+------------------------------
+> Problem: [146. LRU 缓存](https://leetcode.cn/problems/lru-cache/description/)
+
+  [TOC]
+  
+  # 思路
+  > 哈希表查找快，用关键字key作为哈希表的键。设计一个双向链表结构，其节点的地址作为哈希表key对应的值，每个节点需要保存key、value、前节点prev、后节点next。缓存类私有成员变量有容量、哈希表、哈希表元素个数、头节点、尾节点
+
+>构造缓存结构时，为了方便需要伪头节点和伪尾节点，头节点next指向尾节点，尾节点prev指向头节点。
+
+>插入时若存在，则把该节点前后两节点相连接，并把该节点放到head后一个节点，存在伪尾节点，不用考虑尾节点的变化。若不存在，新申请节点并放到head的下一个节点，如果超出容量，则删除尾节点的前一个节点。
+  
+
+  # Code
+  ```C++ []
+
+  struct DLinkedNode{
+    //key 是为了从哈希表的值DLinkedNode*来得到->key，利用得到的key删除这个键值
+    int key;
+    int value;
+    DLinkedNode* prev;
+    DLinkedNode* next;
+    DLinkedNode():key(0),value(0),prev(nullptr),next(nullptr){}
+    DLinkedNode(int _key,int _value):key(_key),value(_value),prev(nullptr),next(nullptr){}
+};
+
+class LRUCache {
+    int m_capacity;
+    int m_size;
+    unordered_map<int,DLinkedNode*> cache;
+    DLinkedNode* head;
+    DLinkedNode* tail;
+//get  哈希表 key value
+//
+public:
+    LRUCache(int capacity):m_capacity(capacity),m_size(0) {
+        //创建伪头节点和伪尾节点
+        head=new DLinkedNode();
+        tail=new DLinkedNode();
+        head->next=tail;
+        tail->prev=head;
+    }
+    
+    int get(int key) {
+        //没找到
+        if(cache.find(key)==cache.end()){
+            return -1;
+        }else{
+            DLinkedNode* node=cache[key];
+            moveToHead(node);
+            return node->value;
+        }
+    }
+    
+    void put(int key, int value) {
+        if(cache.find(key)==cache.end()){
+            //插入
+            DLinkedNode* node=new DLinkedNode(key,value);
+            cache[key]=node;
+            addToHead(node);
+            ++m_size;
+            if(m_size>m_capacity){
+                //超出容量，删除尾
+                DLinkedNode* removed=removeTail();
+                //从哈希表中删除
+                cache.erase(removed->key);
+                //防止内存泄漏
+                delete removed;
+                --m_size;
+            }
+        }else{
+            //更新
+            cache[key]->value=value;
+            //本身是头节点
+            if(cache[key]==head->next){
+                return;
+            }
+            //链表修改
+            DLinkedNode* node = cache[key];
+            //removeNode(node)
+            //前节点next指向后节点
+            node->prev->next=node->next;
+            //后节点prev指向前节点
+            node->next->prev=node->prev;
+            //放到head位置
+            //addToHead(node)
+            node->prev=head;
+            node->next=head->next;
+            head->next->prev=node;
+            head->next=node;
+        }
+    }
+
+    void addToHead(DLinkedNode* node){
+        node->prev=head;
+        node->next=head->next;
+        head->next->prev=node;
+        head->next=node;
+    }
+
+    void removeNode(DLinkedNode* node){
+        node->prev->next=node->next;
+        node->next->prev=node->prev;
+    }   
+
+    void moveToHead(DLinkedNode* node){
+        removeNode(node);
+        addToHead(node);
+    }
+
+    DLinkedNode* removeTail(){
+        DLinkedNode* node=tail->prev;
+        removeNode(node);
+        return node;
+    }
+};
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache* obj = new LRUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */
+  ```
   
