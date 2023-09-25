@@ -775,3 +775,117 @@ public:
  */
   ```
   
+
+### 2023.9.25
+------------------------------
+> Problem: [460. LFU 缓存](https://leetcode.cn/problems/lfu-cache/description/)
+  # Code
+  ```C++ []
+class Node {
+public:
+    int key, value, freq = 1; // 新书只读了一次
+    Node *prev, *next;
+
+    Node(int k = 0, int v = 0) : key(k), value(v) {}
+};
+
+class LFUCache {
+    int min_freq;
+    int capacity;
+    unordered_map<int, Node*> key_to_node;
+    unordered_map<int, Node*> freq_to_dummy;
+
+    Node *get_node(int key){
+        auto it=key_to_node.find(key);
+        if(it==key_to_node.end()){
+            //没有
+            return nullptr;
+        }
+        Node* node=it->second;
+        //从链表里脱离
+        remove(node);
+        //判断脱离后链表是否只剩下哨兵节点
+        Node* dummy=freq_to_dummy[node->freq];
+        if(dummy->prev==dummy){
+            //只剩下哨兵节点，删除这个链表
+            freq_to_dummy.erase(node->freq);
+            delete dummy;
+            if(min_freq==node->freq){
+                min_freq++;
+            }
+        }
+        //插入频次加1的下一个链表
+        push_front(++node->freq,node);
+        return node;
+    }
+
+    Node* new_list(){
+        Node* dummy=new Node();
+        dummy->prev=dummy;
+        dummy->next=dummy;
+        return dummy;
+    }
+
+    void push_front(int freq, Node*x){
+        //判断要放入的频次链表是否存在
+        auto it=freq_to_dummy.find(freq);
+        if(it==freq_to_dummy.end()){
+            //不存在，新建一个，在哈希表记录
+            //emplace返回一个pair，第一个值first是迭代器，第二个值second是bool值，插入成功就为true
+            it=freq_to_dummy.emplace(freq,new_list()).first;
+        }
+        Node* dummy=it->second;
+        x->prev=dummy;
+        x->next=dummy->next;
+        dummy->next=x;
+        x->next->prev=x;
+    }
+
+
+    void remove(Node* x){
+        x->prev->next=x->next;
+        x->next->prev=x->prev;
+    }
+
+public:
+    LFUCache(int capacity):capacity(capacity) {
+
+    }
+    
+    int get(int key) {
+        auto node=get_node(key);
+        return node?node->value:-1;
+    }
+    
+    void put(int key, int value) {
+        auto node = get_node(key);
+        if (node) { // 有这本书
+            node->value = value; // 更新 value
+            return;
+        }
+        if (key_to_node.size() == capacity) { // 书太多了
+            auto dummy = freq_to_dummy[min_freq];
+            auto back_node = dummy->prev; // 最左边那摞书的最下面的书
+            key_to_node.erase(back_node->key);
+            remove(back_node); // 移除
+            delete back_node; // 释放内存
+            if (dummy->prev == dummy) { // 这摞书是空的
+                freq_to_dummy.erase(min_freq); // 移除空链表
+                delete dummy; // 释放内存
+            }
+        }
+        key_to_node[key] = node = new Node(key, value); // 新书
+        push_front(1, node); // 放在「看过 1 次」的最上面
+        min_freq = 1;
+    }
+};
+
+/**
+ * Your LFUCache object will be instantiated and called as such:
+ * LFUCache* obj = new LFUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */
+
+//学习灵神题解
+  ```
