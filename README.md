@@ -889,3 +889,75 @@ public:
 
 //学习灵神题解
   ```
+
+
+### 2023.9.27
+------------------------------
+> Problem: [1333. 餐厅过滤器](https://leetcode.cn/problems/filter-restaurants-by-vegan-friendly-price-and-distance/description/)
+
+  [TOC]
+  
+  # 思路
+  > 首先根据rating和id排序，再遍历选出满足过滤器的id。
+或者先遍历选出满足过滤器的餐厅，再根据rating和id排序，返回id
+  
+  # 复杂度
+  - 时间复杂度: 
+  > $O(nlog(n))$
+  
+  - 空间复杂度: 
+  > $O(n)$
+  
+
+
+  # Code1
+  ```C++ []
+  
+  class Solution {
+public:
+    vector<int> filterRestaurants(vector<vector<int>>& restaurants, int veganFriendly, int maxPrice, int maxDistance) {
+        sort(restaurants.begin(),restaurants.end(),[](const vector<int>&a,const vector<int>&b){
+            if(a[1]==b[1]){
+                return a[0]>b[0];
+            }
+            return a[1]>b[1];
+        });
+        //int m=restaurants.size();
+        vector<int> ans;
+        for(auto i:restaurants){
+            if(i[2]>=veganFriendly && maxDistance>=i[4] && maxPrice>=i[3]){
+                ans.push_back(i[0]);
+            }
+        }
+        return ans;
+    }
+};
+  ```
+
+ # Code2
+  ```C++ []
+  
+  class Solution {
+public:
+    vector<int> filterRestaurants(vector<vector<int>>& restaurants, int veganFriendly, int maxPrice, int maxDistance) {
+        vector<vector<int>> tmp;
+        for(auto i:restaurants){
+            if(i[2]>=veganFriendly && maxDistance>=i[4] && maxPrice>=i[3]){
+                tmp.push_back(i);
+            }
+        }
+        sort(tmp.begin(),tmp.end(),[](const vector<int>&a,const vector<int>&b){
+            if(a[1]==b[1]){
+                return a[0]>b[0];
+            }
+            return a[1]>b[1];
+        });
+        vector<int> ans;
+        for(auto i:tmp){
+            ans.push_back(i[0]);
+        }
+        return ans;
+    }
+};
+  ```
+  
